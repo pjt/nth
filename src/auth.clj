@@ -14,7 +14,7 @@
 ;;;
 ;;; Written and maintained by Stephen Ramsay <sramsay.unl@gmail.com>
 ;;;
-;;; Last Modified: Thu Mar 25 22:19:10 CDT 2010
+;;; Last Modified: Fri Mar 26 23:38:56 CDT 2010
 ;;;
 ;;; Copyright (c) 2010 Stephen Ramsay
 ;;;
@@ -71,7 +71,7 @@
 ;; Sort out authentication
 ;;
 
-(defn get-auth []
+(defn get-twitter-object []
   (let [oauth-ser (str (System/getenv "NTH_HOME") "/oauth.ser")]
   (if (.exists (new File oauth-ser)) ; If we have a serialized OAuth object
     (.setOAuthAccessToken twitter (deserialize oauth-ser)) ; Go with that.

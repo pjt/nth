@@ -10,7 +10,7 @@
 #
 # Written and maintained by Stephen Ramsay <sramsay.unl@gmail.com>
 #
-# Last Modified: Fri Mar 26 21:10:39 CDT 2010
+# Last Modified: Fri Mar 26 23:37:43 CDT 2010
 #
 # Copyright (c) 2010 Stephen Ramsay
 #
@@ -28,7 +28,14 @@
 # along with nth; see the file COPYING.  If not see
 # <http://www.gnu.org/licenses/>.
 
-CLASSPATH='../lib/clojure-1.1.0.jar:../lib/clojure-contrib-1.1.0.jar:../lib/twitter4j-core-2.1.1-SNAPSHOT.jar'
+############ USER EDITABLE VARIABLES ##############
+
+# Nth will store your tweets (and other stuff) here
+TWITTER_DIR="${HOME}/Twitter"
+
+###################################################
+
+mkdir -p $TWITTER_DIR/inbox
 
 NG=`ps | grep -e "[N]GServer"`
 

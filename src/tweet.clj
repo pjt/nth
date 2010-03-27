@@ -36,7 +36,7 @@
         length (.length tweet)]                ; way to get a
     (if (<= length 140)                        ; string.
       (do
-        (.updateStatus (get-auth) tweet)) ; Tweet!
+        (.updateStatus (get-twitter-object) tweet)) ; Tweet!
       (do 
         (printf "\nSorry, you lost me at:\n\n%s\n" (apply str (take 140 tweet)))
         (printf "\nYou need to get rid of %d characters.\n" (- length 140))))))
