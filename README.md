@@ -1,11 +1,6 @@
 # nth
 
-> Through me you pass into the city of woe:
-> Through me you pass into eternal pain:
-> Through me among the people lost for aye.
-> [...]
-> All hope abandon ye who enter here.
-> -- Dante's Divine Comedy, H. F. Cary, trans. (1814)
+> Through me you pass into the city of woe / Through me you pass into eternal pain / Through me among the people lost for aye / [...] / All hope abandon ye who enter here. -- Dante's Divine Comedy, H. F. Cary, trans. (1814)
 
 Nth is a command-line twitter client designed with the UNIX philosophy in mind.  It aims to be a close equivalent to nmh (the old, "New Message Handler" email client designed by the evil geniuses at the RAND Corporation back in the day).
 
