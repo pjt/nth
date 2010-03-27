@@ -1,0 +1,60 @@
+#!/bin/bash
+
+# nth - Main launcher script for nth
+#
+# This is the main launcher script for nth.  All other nth commands are
+# symbolic links to this program.
+# 
+# This script works without it, but for best results, run it with
+# nailgun <http://martiansoftware.com/nailgun/index.html>
+#
+# Written and maintained by Stephen Ramsay <sramsay.unl@gmail.com>
+#
+# Last Modified: Fri Mar 26 21:10:39 CDT 2010
+#
+# Copyright (c) 2010 Stephen Ramsay
+#
+# nth is free software; you can redistribute it and/or modify
+# it under the terms of the GNU General Public License as published by
+# the Free Software Foundation; either version 3, or (at your option) any
+# later version.
+#
+# nth is distributed in the hope that it will be useful, but
+# WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+# or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU General Public License
+# for more details.
+#
+# You should have received a copy of the GNU General Public License
+# along with nth; see the file COPYING.  If not see
+# <http://www.gnu.org/licenses/>.
+
+CLASSPATH='../lib/clojure-1.1.0.jar:../lib/clojure-contrib-1.1.0.jar:../lib/twitter4j-core-2.1.1-SNAPSHOT.jar'
+
+NG=`ps | grep -e "[N]GServer"`
+
+NTH_SRC="${NTH_HOME}/src"
+
+if [ -n "$NG" ];
+then
+	case $1 in
+		"twinc")
+		exec ng clojure.main "${NTH_SRC}/twinc.clj";;
+		"tweet")
+		shift
+		exec ng clojure.main "${NTH_SRC}/tweet.clj" "$@";;
+	esac
+else
+	case $1 in
+		"twinc")
+		exec java -cp $CLASSPATH clojure.main $NTH_SRC/twinc.clj;;
+		"tweet")
+		shift
+		exec java -cp $CLASSPATH clojure.main $NTH_SRC/tweet.clj "$@";;
+	esac
+echo "bar"
+fi
+
+
+
+
+
