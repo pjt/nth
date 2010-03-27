@@ -32,7 +32,7 @@
 ;;; along with nth; see the file COPYING.  If not see
 ;;; <http://www.gnu.org/licenses/>.
 
-(ns gropius.sramsay.nth
+(ns gropius.sramsay.nth.auth
   (:import
      (twitter4j Twitter)
      (twitter4j TwitterFactory) 

@@ -24,10 +24,11 @@
 ;;; along with nth; see the file COPYING.  If not see
 ;;; <http://www.gnu.org/licenses/>.
 
-(ns gropius.sramsay.nth
+(ns gropius.sramsay.nth.twinc
   (:import 
      (twitter4j Twitter)
      (java.text SimpleDateFormat))
+  (:use gropius.sramsay.twinmh.auth)
   (:use [clojure.contrib.duck-streams :only (spit)])
   (:use clojure.contrib.java-utils)
   (:use clojure.contrib.command-line))
@@ -42,7 +43,7 @@
 ;; Code now, ask questions later.
 (def counter (let [count (ref 0)] #(dosync (alter count inc))))
 
-(load-file (str nth-home "/src/auth.clj"))
+;(load-file (str nth-home "/src/auth.clj"))
 
 (defn make-timeline-struct [updates]
   "Struct corresponds to the Status interface in twitter4j"

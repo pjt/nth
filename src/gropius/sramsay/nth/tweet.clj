@@ -22,11 +22,12 @@
 ;;; along with nth; see the file COPYING.  If not see
 ;;; <http://www.gnu.org/licenses/>.
 
-(ns gropius.sramsay.nth 
+(ns gropius.sramsay.nth.tweet
+  (:use gropius.sramsay.twinmh.auth)
   (:use clojure.contrib.java-utils)
   (:use clojure.contrib.command-line))
 
-(load-file (str (System/getenv "NTH_HOME") "/src/auth.clj"))
+;(load-file (str (System/getenv "NTH_HOME") "/src/auth.clj"))
 
 (with-command-line
   *command-line-args*
