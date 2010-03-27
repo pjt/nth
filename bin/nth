@@ -28,13 +28,6 @@
 # along with nth; see the file COPYING.  If not see
 # <http://www.gnu.org/licenses/>.
 
-############ USER EDITABLE VARIABLES ##############
-
-# Nth will store your tweets (and other stuff) here
-TWITTER_DIR="${HOME}/Twitter"
-
-###################################################
-
 mkdir -p $TWITTER_DIR/inbox
 
 NG=`ps | grep -e "[N]GServer"`
