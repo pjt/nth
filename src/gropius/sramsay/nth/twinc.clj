@@ -28,7 +28,7 @@
   (:import 
      (twitter4j Twitter)
      (java.text SimpleDateFormat))
-  (:use gropius.sramsay.twinmh.auth)
+  (:use [gropius.sramsay.nth.auth :only (get-twitter-object)])
   (:use [clojure.contrib.duck-streams :only (spit)])
   (:use clojure.contrib.java-utils)
   (:use clojure.contrib.command-line))
@@ -43,8 +43,6 @@
 ;; Code now, ask questions later.
 (def counter (let [count (ref 0)] #(dosync (alter count inc))))
 
-;(load-file (str nth-home "/src/auth.clj"))
-
 (defn make-timeline-struct [updates]
   "Struct corresponds to the Status interface in twitter4j"
   (struct timeline
@@ -54,18 +52,19 @@
           (.getSource updates)
           (.getText updates)))
 
-(with-command-line
-  *command-line-args*
-  "Usage: inc [-s query]"
-  [[search? s? "Search query"]] ; unimplemented
-  (let [timeline (.getFriendsTimeline (get-twitter-object))
-        updates (map #(make-timeline-struct %) timeline)]
-    (doall (for [status updates] 
-             (do
-              (spit (str user-home "/Twitter/inbox/" (:number status)) (:text status))
-             ; format as "num time nick tweet"
-              (printf "%4d %s %-15s %s\n",
-                     (:number status)
-                     (.format (new SimpleDateFormat "HH:mm") (:created_at status))
-                     (:user status)
-                     (apply str (take 52 (:text status)))))))))
+(defn twinc
+  [& args]
+  (with-command-line
+    args
+    "Usage: inc [-s query]"
+    [[search s "Search query"]] ; unimplemented
+    (let [timeline  (.getFriendsTimeline (get-twitter-object))
+          updates   (map make-timeline-struct timeline)]
+      (doseq [status updates] 
+        (spit (str user-home "/Twitter/inbox/" (:number status)) (:text status))
+        ; format as "num time nick tweet"
+        (printf "%4d %s %-15s %s\n",
+               (:number status)
+               (.format (new SimpleDateFormat "HH:mm") (:created_at status))
+               (:user status)
+               (apply str (take 52 (:text status))))))))

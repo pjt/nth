@@ -1,10 +1,10 @@
-;;; tweet.clj
+;;; nth.clj
 ;;;
 ;;; This file is part of nth
 ;;;
 ;;; Written and maintained by Stephen Ramsay <sramsay.unl@gmail.com>
 ;;;
-;;; Last Modified: Thu Mar 25 22:17:33 CDT 2010
+;;; Last Modified: Sun Mar 28 10:00 PM 2010 C
 ;;;
 ;;; Copyright (c) 2010 Stephen Ramsay
 ;;;
@@ -22,22 +22,21 @@
 ;;; along with nth; see the file COPYING.  If not see
 ;;; <http://www.gnu.org/licenses/>.
 
-(ns gropius.sramsay.nth.tweet
-  (:use [gropius.sramsay.nth.auth :only (get-twitter-object)])
-  (:use [clojure.contrib.str-utils :only (str-join)])
-  (:use clojure.contrib.command-line))
+(ns gropius.sramsay.nth
+  (:gen-class))
 
-(defn tweet
-  [& args]
-  (with-command-line
-    args
-    "Usage: tweet [-D username] message."
-    [[direct? D? "Direct message" false] tweet-args]
-    (let [tweet   (str-join " " tweet-args)
-          length  (.length tweet)]
-      (if (<= length 140)
-        (do
-          (.updateStatus (get-twitter-object) tweet)) ; Tweet!
-        (do 
-          (printf "\nSorry, you lost me at:\n\n%s\n" (apply str (take 140 tweet)))
-          (printf "\nYou need to get rid of %d characters.\n" (- length 140)))))))
+; Command broker for nth: expects command name as first argument, finds command
+; as an nth namespace, calls its -main function with remaining arguments
+(defn -main 
+  [args]
+  (let [nm      (first args)
+        cmd-ns  (symbol (format "gropius.sramsay.nth.%s" nm))]
+    (try 
+      (require cmd-ns)
+      (apply (ns-resolve cmd-ns (symbol nm)) (rest args))
+      (catch java.io.FileNotFoundException _
+        (.println *err* (format "Nth command `%s` not found." nm))
+        (System/exit 1))
+      (catch java.lang.NullPointerException _
+        (.println *err* 
+          (format "Error calling `%s` -- Clojure source might be misformed." nm))))))
