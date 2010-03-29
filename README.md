@@ -8,9 +8,9 @@ I would say more, but it's in a dangerous pre-alpha stage and will almost certai
 
 Here are a few tips for those too stupid to Stop Right Here.
 
-1. Nth is written in Clojure.  It expects to find java in the PATH and clojure.jar and clojure-contrib.jar in the CLASSPATH (it's designed to work with version 1.1.0).
+1. Nth is written in Clojure.  It expects to find java in the PATH and clojure.jar and clojure-contrib.jar in the CLASSPATH (it's designed to work with version 1.1.0). Lein users can run `lein deps`.
 
-2. Nth uses the Twitter4j library, and seems only to work properly under the latest version (twitter4j-core-2.1.1-SNAPSHOT.jar).
+2. Nth uses the Twitter4j library, and seems only to work properly under the latest version (twitter4j-core-2.1.1-SNAPSHOT.jar). (`lein deps` will take care of this.)
 
 3. Nth can run without it, but it's way more fun with [nailgun](http://martiansoftware.com/nailgun/index.html).  That means having the nailgun jar in the CLASSPATH and ng in the PATH.
 
