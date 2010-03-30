@@ -29,15 +29,13 @@
 
 (defn tweet
   [& args]
-  (with-command-line
-    args
+  (with-command-line args
     "Usage: tweet [-D username] message."
-    [[direct? D? "Direct message" false] tweet-args]
+    [[direct D "Direct message" false] tweet-args]
     (let [tweet   (str-join " " tweet-args)
           length  (.length tweet)]
       (if (<= length 140)
-        (do
-          (.updateStatus (get-twitter-object) tweet)) ; Tweet!
+        (.updateStatus (get-twitter-object) tweet) ; Tweet!
         (do 
           (printf "\nSorry, you lost me at:\n\n%s\n" (apply str (take 140 tweet)))
           (printf "\nYou need to get rid of %d characters.\n" (- length 140)))))))

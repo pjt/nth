@@ -26,45 +26,48 @@
 
 (ns gropius.sramsay.nth.twinc
   (:import 
-     (twitter4j Twitter)
+     (twitter4j Status Twitter)
      (java.text SimpleDateFormat))
-  (:use [gropius.sramsay.nth.auth :only (get-twitter-object)])
+  (:use [gropius.sramsay.nth.auth     :only (get-twitter-object)])
   (:use [clojure.contrib.duck-streams :only (spit)])
   (:use clojure.contrib.java-utils)
   (:use clojure.contrib.command-line))
 
-(defstruct timeline :number :created_at :user :source :text)
+(defstruct timeline :number :id :created-at :user :source :text)
+
+(defn- indexed-from
+  "Produces indexed sequence (items as [idx x]), with indices starting 
+  from n. (Cf. clojure.contrib.seq-utils/indexed.)"
+  [n coll]
+  (map vector (iterate inc n) coll))
 
 (def nth-home  (System/getenv "NTH_HOME"))
 (def user-home (System/getenv "HOME"))
 
-;; This is how you do a counter with STM.
-;; No, I don't really understand it.
-;; Code now, ask questions later.
-(def counter (let [count (ref 0)] #(dosync (alter count inc))))
-
-(defn make-timeline-struct [updates]
+(defn make-timeline-struct [n #^Status update]
   "Struct corresponds to the Status interface in twitter4j"
   (struct timeline
-          (counter)
-          (.getCreatedAt updates)
-          (.getScreenName (.getUser updates))
-          (.getSource updates)
-          (.getText updates)))
+          n
+          (.getId update)
+          (.getCreatedAt update)
+          (.getScreenName (.getUser update))
+          (.getSource update)
+          (.getText update)))
 
 (defn twinc
   [& args]
-  (with-command-line
-    args
+  (with-command-line args
     "Usage: inc [-s query]"
     [[search s "Search query"]] ; unimplemented
     (let [timeline  (.getFriendsTimeline (get-twitter-object))
-          updates   (map make-timeline-struct timeline)]
+          updates   (map (partial apply make-timeline-struct) 
+                          (indexed-from 1 timeline))]
       (doseq [status updates] 
         (spit (str user-home "/Twitter/inbox/" (:number status)) (:text status))
         ; format as "num time nick tweet"
         (printf "%4d %s %-15s %s\n",
                (:number status)
-               (.format (new SimpleDateFormat "HH:mm") (:created_at status))
+               (.format (new SimpleDateFormat "HH:mm") (:created-at status))
                (:user status)
-               (apply str (take 52 (:text status))))))))
+               (apply str (take 52 (:text status))))
+        (.flush *out*)))))

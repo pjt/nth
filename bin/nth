@@ -33,28 +33,26 @@ mkdir -p $TWITTER_DIR/inbox
 NG=`ps | grep -e "[N]GServer"`
 
 NTH_SRC="${NTH_HOME}/src"
+CP=$NTH_HOME/lib/*:$NTH_HOME/classes:$NTH_HOME/src
 
-if [ -n "$NG" ];
-then
-	case $1 in
-		"twinc")
-		exec ng clojure.main "${NTH_SRC}/twinc.clj";;
-		"tweet")
-		shift
-		exec ng clojure.main "${NTH_SRC}/tweet.clj" "$@";;
-	esac
-else
-	case $1 in
-		"twinc")
-		exec java -cp $CLASSPATH clojure.main $NTH_SRC/twinc.clj;;
-		"tweet")
-		shift
-		exec java -cp $CLASSPATH clojure.main $NTH_SRC/tweet.clj "$@";;
-	esac
-echo "bar"
-fi
+#if [ -n "$NG" ];
+#then
+#	case $1 in
+#		"twinc")
+#		exec ng clojure.main "${NTH_SRC}/twinc.clj";;
+#		"tweet")
+#		shift
+#		exec ng clojure.main "${NTH_SRC}/tweet.clj" "$@";;
+#	esac
+#else
+#	case $1 in
+#		"twinc")
+#		exec java -cp $CLASSPATH clojure.main $NTH_SRC/twinc.clj;;
+#		"tweet")
+#		shift
+#		exec java -cp $CLASSPATH clojure.main $NTH_SRC/tweet.clj "$@";;
+#	esac
+#fi
 
-
-
-
+exec java -cp $CP gropius.sramsay.nth `basename $0` "$@"
 

@@ -71,7 +71,8 @@
 ;; Sort out authentication
 ;;
 
-(defn get-twitter-object []
+(defn get-twitter-object 
+  {:tag Twitter} []
   (let [oauth-ser (str (System/getenv "NTH_HOME") "/oauth.ser")]
   (if (.exists (new File oauth-ser)) ; If we have a serialized OAuth object
     (.setOAuthAccessToken twitter (deserialize oauth-ser)) ; Go with that.

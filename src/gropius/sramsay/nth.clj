@@ -4,7 +4,7 @@
 ;;;
 ;;; Written and maintained by Stephen Ramsay <sramsay.unl@gmail.com>
 ;;;
-;;; Last Modified: Sun Mar 28 10:00 PM 2010 C
+;;; Last Modified: Mon 29 Mar 2010 21:36 CDT
 ;;;
 ;;; Copyright (c) 2010 Stephen Ramsay
 ;;;
@@ -26,9 +26,9 @@
   (:gen-class))
 
 ; Command broker for nth: expects command name as first argument, finds command
-; as an nth namespace, calls its -main function with remaining arguments
+; as an nth namespace, calls its named function with remaining arguments
 (defn -main 
-  [args]
+  [& args]
   (let [nm      (first args)
         cmd-ns  (symbol (format "gropius.sramsay.nth.%s" nm))]
     (try 
@@ -39,4 +39,5 @@
         (System/exit 1))
       (catch java.lang.NullPointerException _
         (.println *err* 
-          (format "Error calling `%s` -- Clojure source might be misformed." nm))))))
+          (format "Error calling `%s` -- Clojure source not as expected." nm))
+        (System/exit 1)))))
