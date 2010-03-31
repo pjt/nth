@@ -28,8 +28,6 @@
 # along with nth; see the file COPYING.  If not see
 # <http://www.gnu.org/licenses/>.
 
-mkdir -p $TWITTER_DIR/inbox
-
 NG=`ps | grep -e "[N]GServer"`
 
 NTH_SRC="${NTH_HOME}/src"
@@ -38,7 +36,7 @@ if [ -n "$NG" ];
 then
 	case $1 in
 		"twinc")
-		exec ng clojure.main "${NTH_SRC}/twinc.clj";;
+		exec ng clojure.main "${NTH_SRC}/twinc.clj" | sort;;
 		"tweet")
 		shift
 		exec ng clojure.main "${NTH_SRC}/tweet.clj" "$@";;
@@ -53,8 +51,3 @@ else
 	esac
 echo "bar"
 fi
-
-
-
-
-

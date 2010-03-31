@@ -27,44 +27,116 @@
 (ns gropius.sramsay.nth
   (:import 
      (twitter4j Twitter)
+     (java.io File)
+     (java.io FileWriter)
      (java.text SimpleDateFormat))
-  (:use [clojure.contrib.duck-streams :only (spit)])
+  (:use clojure.set)
+  (:use [clojure.contrib.duck-streams :only (spit slurp*)])
   (:use clojure.contrib.java-utils)
   (:use clojure.contrib.command-line))
 
-(defstruct timeline :number :created_at :user :source :text)
-
 (def nth-home  (System/getenv "NTH_HOME"))
 (def user-home (System/getenv "HOME"))
+(def nth-dir   (str user-home "/Twitter")) ; boxes, etc.
+(def inbox-dir (str nth-dir "/inbox"))
+
+(load-file (str nth-home "/src/auth.clj"))
+
+(defstruct timeline :number :created_at :user :source :text)
 
 ;; This is how you do a counter with STM.
 ;; No, I don't really understand it.
 ;; Code now, ask questions later.
-(def counter (let [count (ref 0)] #(dosync (alter count inc))))
+(def counter
+  (let [count (ref 0)]
+    #(dosync (alter count inc))))
 
-(load-file (str nth-home "/src/auth.clj"))
+(defn write-form [form filename]
+    (binding [*out* (FileWriter. filename)]
+      (prn form)))
 
-(defn make-timeline-struct [updates]
+(defn read-form [filename]
+  (try
+    (let [form (read-string (slurp filename))]
+      form)
+    (catch Exception e (.printStackTrace e))))
+
+(defn inbox-files []
+  "Sequence of inbox files"
+  (drop 1 (file-seq (File. (str inbox-dir "/")))))
+
+(defn inbox-is-empty? []
+  (empty? (inbox-files)))
+
+(defn get-inbox []
+  "Sequence containing time-line structs"
+  (map #(read-form (.getPath %)) (inbox-files)))
+
+(defn timeline-struct [updates]
   "Struct corresponds to the Status interface in twitter4j"
   (struct timeline
           (counter)
-          (.getCreatedAt updates)
+          (.toString (.getCreatedAt updates))
           (.getScreenName (.getUser updates))
           (.getSource updates)
           (.getText updates)))
+
+(defn get-timeline []
+  "Retrieve last 20 updates"
+  (let [timeline (.getFriendsTimeline (get-twitter-object))]
+    (zipmap (map #(keyword (str (.getId %))) timeline) (map #(timeline-struct %) timeline))))
+
+(defn write-timeline [timeline]
+  "Write structs as numbered files in inbox"
+  (doall
+    (for [update timeline]
+      (write-form update (str inbox-dir "/" (:number (val update)))))))
+
+(defn digest-view [update]
+  "Write updates to screen (format as: num time nick tweet)"
+  (printf "%4d %s %-15s %s\n",
+          (:number update)
+          (re-find #"[0-9]{2}:[0-9]{2}" (:created_at update))
+          (:user update)
+          (apply str (take 52 (:text update)))))
+
+(defn display-timeline [timeline & ids]
+  (doall 
+    (map #(digest-view %) (vals timeline))))
+;    (let [ids (first ids)
+;          new-updates (loop [result []
+;                             id (first ids)]
+;                        (if (nil? id)
+;                          result
+;                          (recur 
+;                            (doall
+;                              (for [update timeline]
+;                                (when (== id (:id update))
+;                                  (do
+;                                  (conj result update))))) (rest ids))))]) 
+;      (doall
+;      (if (empty? new-updates)
+;        (println "twinc: no updates to twincorporate")
+;        (do
+;          (for [update new-updates]
+;            (digest-view update))))))
+
+(defn new-updates [new-timeline old-timeline]
+  (let [new-ids (into #{} (map #(:id %) new-timeline))
+        old-ids (into #{} (map #(:id %) old-timeline))]
+    (lazy-cat (clojure.set/difference new-ids old-ids) 
+              (clojure.set/difference old-ids new-ids)))) 
 
 (with-command-line
   *command-line-args*
   "Usage: inc [-s query]"
   [[search? s? "Search query"]] ; unimplemented
-  (let [timeline (.getFriendsTimeline (get-twitter-object))
-        updates (map #(make-timeline-struct %) timeline)]
-    (doall (for [status updates] 
-             (do
-              (spit (str user-home "/Twitter/inbox/" (:number status)) (:text status))
-             ; format as "num time nick tweet"
-              (printf "%4d %s %-15s %s\n",
-                     (:number status)
-                     (.format (new SimpleDateFormat "HH:mm") (:created_at status))
-                     (:user status)
-                     (apply str (take 52 (:text status)))))))))
+  ;(let [new-timeline (get-timeline)
+  (let [new-timeline (get-timeline)]
+  ;      most-recent-ids (new-updates new-timeline (get-inbox))]
+    (when (inbox-is-empty?)
+      (do
+        (display-timeline new-timeline)
+        (write-timeline new-timeline)))))
+    ;(do 
+    ;    (display-timeline new-timeline most-recent-ids))))
