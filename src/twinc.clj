@@ -6,7 +6,7 @@
 ;;;
 ;;; Written and maintained by Stephen Ramsay <sramsay.unl@gmail.com>
 ;;;
-;;; Last Modified: Thu Mar 25 22:17:12 CDT 2010
+;;; Last Modified: Wed Mar 31 09:48:43 CDT 2010
 ;;;
 ;;; Copyright (c) 2010 Stephen Ramsay
 ;;;
@@ -52,10 +52,12 @@
     #(dosync (alter count inc))))
 
 (defn write-form [form filename]
-    (binding [*out* (FileWriter. filename)]
-      (prn form)))
+  "Write a Clojure form to a file."
+  (binding [*out* (FileWriter. filename)]
+    (prn form)))
 
 (defn read-form [filename]
+  "Read a Clojure form from a file."
   (try
     (let [form (read-string (slurp filename))]
       form)
@@ -65,17 +67,24 @@
   "Sequence of inbox files"
   (drop 1 (file-seq (File. (str inbox-dir "/")))))
 
+(defn new-inbox-num []
+  "This is an unreadable function.  There must be a better way."
+  (+ (Integer. (last (sort (comparator (fn [a b] (if (> (count a) (count b)) nil (.compareTo b a)))) (into [] (map #(.getName %) (inbox-files))))))))
+
 (defn inbox-is-empty? []
+  "Check $NTH_HOME/Twitter/inbox for files."
   (empty? (inbox-files)))
 
 (defn get-inbox []
   "Sequence containing time-line structs"
-  (map #(read-form (.getPath %)) (inbox-files)))
+  (into {} (map #(read-form (.getPath %)) (inbox-files))))
 
 (defn timeline-struct [updates]
   "Struct corresponds to the Status interface in twitter4j"
   (struct timeline
-          (counter)
+          (if (inbox-is-empty?)
+            (counter)
+            (new-inbox-num))
           (.toString (.getCreatedAt updates))
           (.getScreenName (.getUser updates))
           (.getSource updates)
@@ -101,42 +110,30 @@
           (apply str (take 52 (:text update)))))
 
 (defn display-timeline [timeline & ids]
+  "Write new updates to screen or signal no new messages."
   (doall 
-    (map #(digest-view %) (vals timeline))))
-;    (let [ids (first ids)
-;          new-updates (loop [result []
-;                             id (first ids)]
-;                        (if (nil? id)
-;                          result
-;                          (recur 
-;                            (doall
-;                              (for [update timeline]
-;                                (when (== id (:id update))
-;                                  (do
-;                                  (conj result update))))) (rest ids))))]) 
-;      (doall
-;      (if (empty? new-updates)
-;        (println "twinc: no updates to twincorporate")
-;        (do
-;          (for [update new-updates]
-;            (digest-view update))))))
+    (if (empty? timeline)
+      (println "twinc: no updates to twincorporate")
+      (map #(digest-view %) (vals timeline)))))
 
-(defn new-updates [new-timeline old-timeline]
-  (let [new-ids (into #{} (map #(:id %) new-timeline))
-        old-ids (into #{} (map #(:id %) old-timeline))]
-    (lazy-cat (clojure.set/difference new-ids old-ids) 
-              (clojure.set/difference old-ids new-ids)))) 
+(defn diff-new-updates [new-timeline old-timeline]
+  "Compare id keys in most recent timeline to what's in the inbox"
+  (let [new-ids (into #{} (keys new-timeline))
+        old-ids (into #{} (keys old-timeline))
+        current-ids (lazy-cat (clojure.set/difference new-ids old-ids) 
+                              (clojure.set/difference old-ids new-ids))]
+    (select-keys new-timeline current-ids)))
 
 (with-command-line
   *command-line-args*
   "Usage: inc [-s query]"
   [[search? s? "Search query"]] ; unimplemented
-  ;(let [new-timeline (get-timeline)
-  (let [new-timeline (get-timeline)]
-  ;      most-recent-ids (new-updates new-timeline (get-inbox))]
-    (when (inbox-is-empty?)
+  (let [current-timeline (get-timeline)
+        most-recent-updates (diff-new-updates current-timeline (get-inbox))]
+    (if (inbox-is-empty?)
       (do
-        (display-timeline new-timeline)
-        (write-timeline new-timeline)))))
-    ;(do 
-    ;    (display-timeline new-timeline most-recent-ids))))
+        (display-timeline current-timeline)
+        (write-timeline current-timeline))
+      (do 
+        (display-timeline most-recent-updates)
+        (write-timeline most-recent-updates)))))
