@@ -72,7 +72,7 @@
   (+ (Integer. (last (sort (comparator (fn [a b] (if (> (count a) (count b)) nil (.compareTo b a)))) (into [] (map #(.getName %) (inbox-files))))))))
 
 (defn inbox-is-empty? []
-  "Check $NTH_HOME/Twitter/inbox for files."
+  "Check $HOME/Twitter/inbox for files."
   (empty? (inbox-files)))
 
 (defn get-inbox []
