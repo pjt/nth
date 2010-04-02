@@ -51,7 +51,7 @@ NTH_SRC="${NTH_HOME}/src"
 NG=`ps | grep -e "[N]GServer"`
 if [ -n "$NG" ];
 then
-	case $1 in
+	case `basename $0` in
 		"twinc")
 		exec ng clojure.main "${NTH_SRC}/gropius/sramsay/nth/twinc.clj" | sort;;
 		"tweet")
