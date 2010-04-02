@@ -40,14 +40,17 @@ then
 		"tweet")
 		shift
 		exec ng clojure.main "${NTH_SRC}/tweet.clj" "$@";;
+		"tscan")
+		exec ng clojure.main "${NTH_SRC}/tscan.clj" | sort;;
 	esac
 else
 	case $1 in
 		"twinc")
-		exec java -cp $CLASSPATH clojure.main $NTH_SRC/twinc.clj;;
+		exec java -cp $CLASSPATH clojure.main "${NTH_SRC}/twinc.clj" | sort;;
 		"tweet")
 		shift
-		exec java -cp $CLASSPATH clojure.main $NTH_SRC/tweet.clj "$@";;
+		exec java -cp $CLASSPATH clojure.main "${NTH_SRC}/tweet.clj" "$@";;
+		"tscan")
+		exec java -cp $CLASSPATH clojure.main "${NTH_SRC}/tscan.clj" | sort;;
 	esac
-echo "bar"
 fi

@@ -1,9 +1,8 @@
-;;; twinc.clj
+;;; show.clj
 ;;;
 ;;; This file is part of nth
 ;;;
-;;; Checks the main timeline.  If it finds new updates, simultaneously
-;;; writes them (in digest form) to the screen, and to $HOME/Twitter/inbox.
+;;; Get a full view of a numbered tweet.
 ;;;
 ;;; Written and maintained by Stephen Ramsay <sramsay.unl@gmail.com>
 ;;;
@@ -26,30 +25,66 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (ns gropius.sramsay.nth
-  (:import 
-     (twitter4j Twitter)
-     (java.io File)
-     (java.io FileWriter)
-     (java.text SimpleDateFormat))
-  (:use clojure.set)
-  (:use [clojure.contrib.duck-streams :only (spit)])
-  (:use clojure.contrib.java-utils)
+;  (:import 
+;     (twitter4j Twitter)
+;     (java.io File)
+;     (java.io FileWriter)
+;     (java.text SimpleDateFormat))
+;  (:use clojure.set)
+;  (:use [clojure.contrib.duck-streams :only (spit)])
+;  (:use clojure.contrib.java-utils)
   (:use clojure.contrib.command-line))
 
 (def nth-home  (System/getenv "NTH_HOME"))
 (def user-home (System/getenv "HOME"))
 (def nth-dir   (str user-home "/Twitter")) ; boxes, etc.
-(def inbox-dir (str nth-dir "/inbox"))     ;
+(def inbox-dir (str nth-dir "/inbox"))
 
 (load-file (str nth-home "/src/auth.clj"))
-(load-file (str nth-home "/src/inbox.clj"))
 
 (defstruct timeline :number :created_at :user :source :text)
+
+;; This is how you do a counter with STM.
+;; No, I don't really understand it.
+;; Code now, ask questions later.
+(def counter
+  (let [count (ref 0)]
+    #(dosync (alter count inc))))
+
+(defn write-form [form filename]
+  "Write a Clojure form to a file."
+  (binding [*out* (FileWriter. filename)]
+    (prn form)))
+
+(defn read-form [filename]
+  "Read a Clojure form from a file."
+  (try
+    (let [form (read-string (slurp filename))]
+      form)
+    (catch Exception e (.printStackTrace e))))
+
+(defn inbox-files []
+  "Sequence of inbox files"
+  (drop 1 (file-seq (File. (str inbox-dir "/")))))
+
+(defn new-inbox-num []
+  "This is an unreadable function.  There must be a better way."
+  (+ (Integer. (last (sort (comparator (fn [a b] (if (> (count a) (count b)) nil (.compareTo b a)))) (into [] (map #(.getName %) (inbox-files))))))))
+
+(defn inbox-is-empty? []
+  "Check $HOME/Twitter/inbox for files."
+  (empty? (inbox-files)))
+
+(defn get-inbox []
+  "Sequence containing time-line structs"
+  (into {} (map #(read-form (.getPath %)) (inbox-files))))
 
 (defn timeline-struct [updates]
   "Struct corresponds to the Status interface in twitter4j"
   (struct timeline
-          (new-inbox-num)
+          (if (inbox-is-empty?)
+            (counter)
+            (new-inbox-num))
           (.toString (.getCreatedAt updates))
           (.getScreenName (.getUser updates))
           (.getSource updates)
