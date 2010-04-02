@@ -24,15 +24,11 @@
 ;;; along with nth; see the file COPYING.  If not see
 ;;; <http://www.gnu.org/licenses/>.
 
-(ns gropius.sramsay.nth
+(ns gropius.sramsay.nth.tshow
   (:import
      (java.io File))
+  (:use [gropius.sramsay.nth utils inbox])
   (:use clojure.contrib.command-line))
-
-(def nth-home  (System/getenv "NTH_HOME"))
-
-(load-file (str nth-home "/src/utils.clj"))
-(load-file (str nth-home "/src/inbox.clj"))
 
 (defn full-view [update]
   "Write a full view of the specified update to stdout"
@@ -44,9 +40,11 @@
             (:created_at tweet),
             (peek (re-find #">(.*)<" (:source tweet))))))
 
-(with-command-line
-  *command-line-args*
-  "Usage: inc [-s query]"
-  [[search? s? "Search query"]] ; unimplemented
-  (let [num (first *command-line-args*)]
-    (full-view (get-inbox-file num))))
+(defn tshow
+  [& args]
+  (with-command-line
+    args
+    "Usage: inc [-s query]"
+    [[search s "Search query"] nums] ; unimplemented
+    (let [num (first nums)]
+      (full-view (get-inbox-file num)))))

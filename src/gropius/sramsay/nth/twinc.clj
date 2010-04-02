@@ -25,35 +25,28 @@
 ;;; along with nth; see the file COPYING.  If not see
 ;;; <http://www.gnu.org/licenses/>.
 
-(ns gropius.sramsay.nth
+(ns gropius.sramsay.nth.twinc
   (:import 
-     (twitter4j Twitter)
+     (twitter4j Status Twitter)
      (java.io File)
      (java.io FileWriter)
      (java.text SimpleDateFormat))
   (:use clojure.set)
+  (:use [gropius.sramsay.nth auth inbox utils])
   (:use [clojure.contrib.duck-streams :only (spit)])
   (:use clojure.contrib.java-utils)
   (:use clojure.contrib.command-line))
 
-(def nth-home  (System/getenv "NTH_HOME"))
-(def user-home (System/getenv "HOME"))
-(def nth-dir   (str user-home "/Twitter")) ; boxes, etc.
-(def inbox-dir (str nth-dir "/inbox"))     ;
-
-(load-file (str nth-home "/src/auth.clj"))
-(load-file (str nth-home "/src/inbox.clj"))
-
 (defstruct timeline :number :created_at :user :source :text)
 
-(defn timeline-struct [updates]
+(defn timeline-struct [#^Status update]
   "Struct corresponds to the Status interface in twitter4j"
   (struct timeline
           (new-inbox-num)
-          (.toString (.getCreatedAt updates))
-          (.getScreenName (.getUser updates))
-          (.getSource updates)
-          (.getText updates)))
+          (.toString (.getCreatedAt update))
+          (.getScreenName (.getUser update))
+          (.getSource update)
+          (.getText update)))
 
 (defn get-timeline []
   "Retrieve last 20 updates"
@@ -62,9 +55,8 @@
 
 (defn write-timeline [timeline]
   "Write structs as numbered files in inbox"
-  (doall
-    (for [update timeline]
-      (write-form update (str inbox-dir "/" (:number (val update)))))))
+  (doseq [update timeline]
+    (write-form update (str inbox-dir "/" (:number (val update))))))
 
 (defn digest-view [update]
   "Write updates to screen (format as: num time nick tweet)"
@@ -72,14 +64,15 @@
           (:number update)
           (re-find #"[0-9]{2}:[0-9]{2}" (:created_at update))
           (:user update)
-          (apply str (take 52 (:text update)))))
+          (apply str (take 52 (:text update))))
+  (.flush *out*))
 
 (defn display-timeline [timeline & ids]
   "Write new updates to screen or signal no new messages."
-  (doall 
-    (if (empty? timeline)
-      (println "twinc: no updates to twincorporate")
-      (map #(digest-view %) (vals timeline)))))
+  (if (empty? timeline)
+    (println "twinc: no updates to twincorporate")
+    (doseq [update (vals timeline)]
+      (digest-view update))))
 
 (defn diff-new-updates [new-timeline old-timeline]
   "Compare id keys in most recent timeline to what's in the inbox"
@@ -89,16 +82,18 @@
                               (clojure.set/difference old-ids new-ids))]
     (select-keys new-timeline current-ids)))
 
-(with-command-line
-  *command-line-args*
-  "Usage: inc [-s query]"
-  [[search? s? "Search query"]] ; unimplemented
-  (let [current-timeline (get-timeline)
-        most-recent-updates (diff-new-updates current-timeline (get-inbox))]
-    (if (inbox-is-empty?)
-      (do
-        (display-timeline current-timeline)
-        (write-timeline current-timeline))
-      (do 
-        (display-timeline most-recent-updates)
-        (write-timeline most-recent-updates)))))
+(defn twinc
+  [& args]
+  (with-command-line
+    args
+    "Usage: inc [-s query]"
+    [[search s "Search query"]] ; unimplemented
+    (let [current-timeline (get-timeline)
+          most-recent-updates (diff-new-updates current-timeline (get-inbox))]
+      (if (inbox-is-empty?)
+        (do
+          (display-timeline current-timeline)
+          (write-timeline current-timeline))
+        (do 
+          (display-timeline most-recent-updates)
+          (write-timeline most-recent-updates))))))

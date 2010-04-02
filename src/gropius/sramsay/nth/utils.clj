@@ -1,12 +1,12 @@
-;;; tscan.clj
+;;; utils.clj
+;;;
+;;; Miscellaneous utility functions.
 ;;;
 ;;; This file is part of nth
 ;;;
-;;; Get a full view of a numbered tweet.
-;;;
 ;;; Written and maintained by Stephen Ramsay <sramsay.unl@gmail.com>
 ;;;
-;;; Last Modified: Wed Mar 31 22:42:25 CDT 2010
+;;; Last Modified: Thu Apr 01 22:03:23 CDT 2010
 ;;;
 ;;; Copyright (c) 2010 Stephen Ramsay
 ;;;
@@ -24,14 +24,20 @@
 ;;; along with nth; see the file COPYING.  If not see
 ;;; <http://www.gnu.org/licenses/>.
 
-(ns gropius.sramsay.nth
-  (:import 
-     (java.io File))
-  (:use clojure.contrib.command-line))
+(ns gropius.sramsay.nth.utils
+  (:import
+     (java.io File)
+     (java.io FileWriter)))
 
 (def nth-home  (System/getenv "NTH_HOME"))
+(def user-home (System/getenv "HOME"))
+(def nth-dir   (str user-home "/Twitter")) ; boxes, etc.
+(def inbox-dir (str nth-dir "/inbox"))     ;
 
-(load-file (str nth-home "/src/inbox.clj"))
+(defn numeric-comparator []
+  "Comparator function for sorting numbers"
+  ; Is this really necessary?
+  (comparator (fn [a b] (if (> (count a) (count b)) nil (.compareTo b a)))))
 
 (defn read-form [filename]
   "Read a Clojure form from a file."
@@ -40,24 +46,8 @@
       form)
     (catch Exception e (.printStackTrace e))))
 
-(defn digest-view [update]
-  "Write updates to screen (format as: num time nick tweet)"
-  (printf "%4d %s %-15s %s\n",
-          (:number update)
-          (re-find #"[0-9]{2}:[0-9]{2}" (:created_at update))
-          (:user update)
-          (apply str (take 52 (:text update))))) 
+(defn write-form [form filename]
+  "Write a Clojure form to a file."
+  (binding [*out* (FileWriter. filename)]
+    (prn form)))
 
-(defn display-timeline [timeline]
-  "Write new updates to screen or signal no new messages."
-  (doall
-    (map #(digest-view %) (vals timeline))))
-
-(with-command-line
-  *command-line-args*
-  "Usage: tscan [-s query]"
-  [[version? v? "Version 1.0"]] 
-  (let [current-timeline (get-inbox)]
-    (if (inbox-is-empty?)
-      (println "tscan: no updates in inbox")
-      (display-timeline current-timeline))))

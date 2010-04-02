@@ -1,12 +1,12 @@
-;;; utils.clj
+;;; inbox.clj
 ;;;
-;;; Miscellaneous utility functions.
+;;; Functions related to the manipulation of the inbox.
 ;;;
 ;;; This file is part of nth
 ;;;
 ;;; Written and maintained by Stephen Ramsay <sramsay.unl@gmail.com>
 ;;;
-;;; Last Modified: Thu Apr 01 22:03:23 CDT 2010
+;;; Last Modified: Thu Apr 01 22:01:18 CDT 2010
 ;;;
 ;;; Copyright (c) 2010 Stephen Ramsay
 ;;;
@@ -24,27 +24,28 @@
 ;;; along with nth; see the file COPYING.  If not see
 ;;; <http://www.gnu.org/licenses/>.
 
-(ns gropius.sramsay.nth
-  (:import
-     (java.io File)
-     (java.io FileWriter)))
+(ns gropius.sramsay.nth.inbox
+  (:use gropius.sramsay.nth.utils)
+  (:import 
+     (java.io File)))
 
-(defn numeric-comparator []
-  "Comparator function for sorting numbers"
-  ; Is this really necessary?
-  (comparator (fn [a b] (if (> (count a) (count b)) nil (.compareTo b a)))))
+(defn inbox-files []
+  "Sequence of inbox files"
+  (drop 1 (file-seq (File. (str inbox-dir "/")))))
 
-(defn read-form [filename]
-  "Read a Clojure form from a file."
-  (try
-    (let [form (read-string (slurp filename))]
-      form)
-    (catch Exception e (.printStackTrace e))))
+(defn get-inbox []
+  "Sequence containing timeline structs"
+  (into {} (map #(read-form (.getPath %)) (inbox-files))))
 
-(defn write-form [form filename]
-  "Write a Clojure form to a file."
-  (binding [*out* (FileWriter. filename)]
-    (prn form)))
-
-
+(defn get-inbox-file [num]
+  "Returns the corresponding tweet struct"
+  (read-form (.getPath (File. (str inbox-dir "/" num)))))
   
+(defn inbox-is-empty? []
+  "Check $HOME/Twitter/inbox for files."
+  (empty? (inbox-files)))
+
+(def new-inbox-num
+  (let [inbox-filenames (inbox-files)
+        inbox-size (ref (count inbox-filenames))]
+    #(dosync (alter inbox-size inc))))

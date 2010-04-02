@@ -22,21 +22,23 @@
 ;;; along with nth; see the file COPYING.  If not see
 ;;; <http://www.gnu.org/licenses/>.
 
-(ns gropius.sramsay.nth 
+(ns gropius.sramsay.nth.tweet
+  (:use gropius.sramsay.nth.auth)
+  (:use [clojure.contrib.str-utils :only (str-join)])
   (:use clojure.contrib.java-utils)
   (:use clojure.contrib.command-line))
 
-(load-file (str (System/getenv "NTH_HOME") "/src/auth.clj"))
-
-(with-command-line
-  *command-line-args*
-  "Usage: tweet [-D username] message."
-  [[direct? D? "Direct message" false]]
-  (let [tweet (apply str (interpose " " *command-line-args*)) ; Awkward
-        length (.length tweet)]                               ; way to get a
-    (if (<= length 140)                                       ; string.
-      (do
-        (.updateStatus (get-twitter-object) tweet)) ; Tweet!
-      (do 
-        (printf "\nSorry, you lost me at:\n\n%s\n" (apply str (take 140 tweet)))
-        (printf "\nYou need to get rid of %d characters.\n" (- length 140))))))
+(defn tweet
+  [& args]
+  (with-command-line
+    args
+    "Usage: tweet [-D username] message."
+    [[direct D "Direct message" false] tweet-args]
+    (let [tweet   (str-join " " tweet-args)
+          length  (.length tweet)]
+      (if (<= length 140)
+        (do
+          (.updateStatus (get-twitter-object) tweet)) ; Tweet!
+        (do 
+          (printf "\nSorry, you lost me at:\n\n%s\n" (apply str (take 140 tweet)))
+          (printf "\nYou need to get rid of %d characters.\n" (- length 140)))))))

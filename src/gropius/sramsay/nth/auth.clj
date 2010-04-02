@@ -32,7 +32,7 @@
 ;;; along with nth; see the file COPYING.  If not see
 ;;; <http://www.gnu.org/licenses/>.
 
-(ns gropius.sramsay.nth
+(ns gropius.sramsay.nth.auth
   (:import
      (twitter4j Twitter)
      (twitter4j TwitterFactory) 
@@ -46,7 +46,8 @@
      (java.io FileInputStream)
      (java.io ObjectOutputStream)
      (java.io ObjectInputStream)
-     (java.io InputStreamReader)))
+     (java.io InputStreamReader))
+  (:use gropius.sramsay.nth.utils))
 
 (System/setProperty "twitter4j.oauth.consumerKey" "XqQY44s716uCi4dRtAa80Q")
 (System/setProperty "twitter4j.oauth.consumerSecret" "FTQPAnR2LxvacKEqjpj2NF688bOc8ggsIg0c0D7Rc5s")
@@ -71,8 +72,9 @@
 ;; Sort out authentication
 ;;
 
-(defn get-twitter-object []
-  (let [oauth-ser (str (System/getenv "NTH_HOME") "/oauth.ser")]
+(defn get-twitter-object 
+  {:tag Twitter} []
+  (let [oauth-ser (str nth-home "/oauth.ser")]
   (if (.exists (new File oauth-ser)) ; If we have a serialized OAuth object
     (.setOAuthAccessToken twitter (deserialize oauth-ser)) ; Go with that.
     (do ; Otherwise, give the user a URL and have them give you the pin
