@@ -10,7 +10,7 @@
 #
 # Written and maintained by Stephen Ramsay <sramsay.unl@gmail.com>
 #
-# Last Modified: Fri Mar 26 23:37:43 CDT 2010
+# Last Modified: Thu Apr 01 22:35:12 CDT 2010
 #
 # Copyright (c) 2010 Stephen Ramsay
 #
@@ -42,6 +42,9 @@ then
 		exec ng clojure.main "${NTH_SRC}/tweet.clj" "$@";;
 		"tscan")
 		exec ng clojure.main "${NTH_SRC}/tscan.clj" | sort;;
+		"tshow")
+		shift
+		exec ng clojure.main "${NTH_SRC}/tshow.clj" "$@";;
 	esac
 else
 	case $1 in
@@ -52,5 +55,8 @@ else
 		exec java -cp $CLASSPATH clojure.main "${NTH_SRC}/tweet.clj" "$@";;
 		"tscan")
 		exec java -cp $CLASSPATH clojure.main "${NTH_SRC}/tscan.clj" | sort;;
+		"tshow")
+		shift
+		exec java -cp $CLASSPATH clojure.main "${NTH_SRC}/tshow.clj" "$@";;
 	esac
 fi

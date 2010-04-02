@@ -33,8 +33,8 @@
   "Usage: tweet [-D username] message."
   [[direct? D? "Direct message" false]]
   (let [tweet (apply str (interpose " " *command-line-args*)) ; Awkward
-        length (.length tweet)]                ; way to get a
-    (if (<= length 140)                        ; string.
+        length (.length tweet)]                               ; way to get a
+    (if (<= length 140)                                       ; string.
       (do
         (.updateStatus (get-twitter-object) tweet)) ; Tweet!
       (do 

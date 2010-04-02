@@ -42,12 +42,16 @@
   "Sequence containing timeline structs"
   (into {} (map #(read-form (.getPath %)) (inbox-files))))
 
+(defn get-inbox-file [num]
+  "Returns the corresponding tweet struct"
+  (read-form (.getPath (File. (str inbox-dir "/" num)))))
+  
+
 (defn inbox-is-empty? []
   "Check $HOME/Twitter/inbox for files."
   (empty? (inbox-files)))
 
 (def new-inbox-num
-  "Returns the next available inbox number"
   (let [inbox-filenames (inbox-files)
         inbox-size (ref (count inbox-filenames))]
     #(dosync (alter inbox-size inc))))
