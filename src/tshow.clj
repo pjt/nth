@@ -37,7 +37,7 @@
 (defn full-view [update]
   "Write a full view of the specified update to stdout"
   (let [tweet (peek update)]
-    (printf "(Update inbox: %s)\n\n", (:number tweet))
+    (printf "(Update inbox:%s)\n\n", (:number tweet))
     (println (:text tweet))
     (printf "\n[%s, %s, via %s]\n",
             (:user tweet),
