@@ -30,20 +30,6 @@
   (:use [gropius.sramsay.nth inbox utils])
   (:use clojure.contrib.command-line))
 
-(defn digest-view [update]
-  "Write updates to screen (format as: num time nick tweet)"
-  (printf "%4d %s %-15s %s\n",
-          (:number update)
-          (re-find #"[0-9]{2}:[0-9]{2}" (:created_at update))
-          (:user update)
-          (apply str (take 52 (:text update))))
-  (.flush *out*)) 
-
-(defn display-timeline [timeline]
-  "Write new updates to screen or signal no new messages."
-  (doseq [update (vals timeline)]
-    (digest-view update)))
-
 (defn tscan
   [& args]
   (with-command-line

@@ -37,12 +37,13 @@
   (:use clojure.contrib.java-utils)
   (:use clojure.contrib.command-line))
 
-(defstruct timeline :number :created_at :user :source :text)
+(defstruct timeline :number :id :created_at :user :source :text)
 
-(defn timeline-struct [#^Status update]
+(defn timeline-struct [n #^Status update]
   "Struct corresponds to the Status interface in twitter4j"
   (struct timeline
-          (new-inbox-num)
+          n
+          (.getId update)
           (.toString (.getCreatedAt update))
           (.getScreenName (.getUser update))
           (.getSource update)
@@ -50,36 +51,23 @@
 
 (defn get-timeline []
   "Retrieve last 20 updates"
-  (let [timeline (.getFriendsTimeline (get-twitter-object))]
-    (zipmap (map #(keyword (str (.getId %))) timeline) (map #(timeline-struct %) timeline))))
+  (let [old-to-new  (reverse (.getFriendsTimeline (get-twitter-object)))
+        indexed     (indexed-from (next-inbox-num) old-to-new)
+        timeline    (map (partial apply timeline-struct) indexed)]
+    (into {} (for [update timeline] [(:id update) update]))))
 
 (defn write-timeline [timeline]
   "Write structs as numbered files in inbox"
-  (doseq [update timeline]
-    (write-form update (str inbox-dir "/" (:number (val update))))))
-
-(defn digest-view [update]
-  "Write updates to screen (format as: num time nick tweet)"
-  (printf "%4d %s %-15s %s\n",
-          (:number update)
-          (re-find #"[0-9]{2}:[0-9]{2}" (:created_at update))
-          (:user update)
-          (apply str (take 52 (:text update))))
-  (.flush *out*))
-
-(defn display-timeline [timeline & ids]
-  "Write new updates to screen or signal no new messages."
-  (if (empty? timeline)
-    (println "twinc: no updates to twincorporate")
-    (doseq [update (vals timeline)]
-      (digest-view update))))
+  (doseq [update (vals timeline)]
+   (write-form update (str inbox-dir "/" (:number update)))))
 
 (defn diff-new-updates [new-timeline old-timeline]
   "Compare id keys in most recent timeline to what's in the inbox"
   (let [new-ids (into #{} (keys new-timeline))
         old-ids (into #{} (keys old-timeline))
-        current-ids (lazy-cat (clojure.set/difference new-ids old-ids) 
-                              (clojure.set/difference old-ids new-ids))]
+        current-ids (clojure.set/difference
+                      (clojure.set/union new-ids old-ids)
+                      (clojure.set/intersection new-ids old-ids))]
     (select-keys new-timeline current-ids)))
 
 (defn twinc
@@ -90,10 +78,5 @@
     [[search s "Search query"]] ; unimplemented
     (let [current-timeline (get-timeline)
           most-recent-updates (diff-new-updates current-timeline (get-inbox))]
-      (if (inbox-is-empty?)
-        (do
-          (display-timeline current-timeline)
-          (write-timeline current-timeline))
-        (do 
-          (display-timeline most-recent-updates)
-          (write-timeline most-recent-updates))))))
+      (display-timeline most-recent-updates)
+      (write-timeline most-recent-updates))))

@@ -30,15 +30,14 @@
   (:use [gropius.sramsay.nth utils inbox])
   (:use clojure.contrib.command-line))
 
-(defn full-view [update]
+(defn full-view [tweet]
   "Write a full view of the specified update to stdout"
-  (let [tweet (peek update)]
-    (printf "(Update inbox: %s)\n\n", (:number tweet))
-    (println (:text tweet))
-    (printf "\n[%s, %s, via %s]\n",
-            (:user tweet),
-            (:created_at tweet),
-            (peek (re-find #">(.*)<" (:source tweet))))))
+  (printlnf "(Update inbox: %s)\n", (:number tweet))
+  (println (:text tweet))
+  (printlnf "\n[%s, %s, via %s]",
+          (:user tweet),
+          (:created_at tweet),
+          (peek (re-find #">(.*)<" (:source tweet)))))
 
 (defn tshow
   [& args]

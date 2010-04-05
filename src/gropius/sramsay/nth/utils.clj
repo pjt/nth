@@ -39,6 +39,12 @@
   ; Is this really necessary?
   (comparator (fn [a b] (if (> (count a) (count b)) nil (.compareTo b a)))))
 
+(defn indexed-from
+  "Produces indexed sequence (items as [idx x]), with indices starting 
+  from n. (Cf. clojure.contrib.seq-utils/indexed.)"
+  [n coll]
+  (map vector (iterate inc n) coll))
+
 (defn read-form [filename]
   "Read a Clojure form from a file."
   (try
@@ -50,4 +56,22 @@
   "Write a Clojure form to a file."
   (binding [*out* (FileWriter. filename)]
     (prn form)))
+
+(defn printlnf
+  "Short for (println (format ...)). Printf often requires flushing; this doesn't."
+  [& args]
+  (println (apply format args)))
+
+(defn digest-view [update]
+  "Write updates to screen (format as: num time nick tweet)"
+  (printlnf "%4d %s %-15s %s",
+          (:number update)
+          (re-find #"[0-9]{2}:[0-9]{2}" (:created_at update))
+          (:user update)
+          (apply str (take 52 (:text update)))))
+
+(defn display-timeline [timeline]
+  "Write new updates to screen or signal no new messages."
+  (doseq [update (sort-by :number > (vals timeline))]
+    (digest-view update)))
 

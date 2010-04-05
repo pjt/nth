@@ -23,7 +23,7 @@
 ;;; <http://www.gnu.org/licenses/>.
 
 (ns gropius.sramsay.nth.tweet
-  (:use gropius.sramsay.nth.auth)
+  (:use [gropius.sramsay.nth auth utils])
   (:use [clojure.contrib.str-utils :only (str-join)])
   (:use clojure.contrib.java-utils)
   (:use clojure.contrib.command-line))
@@ -40,5 +40,5 @@
         (do
           (.updateStatus (get-twitter-object) tweet)) ; Tweet!
         (do 
-          (printf "\nSorry, you lost me at:\n\n%s\n" (apply str (take 140 tweet)))
-          (printf "\nYou need to get rid of %d characters.\n" (- length 140)))))))
+          (printlnf "\nSorry, you lost me at:\n\n%s\n" (apply str (take 140 tweet)))
+          (printlnf "\nYou need to get rid of %d characters.\n" (- length 140)))))))

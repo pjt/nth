@@ -34,8 +34,11 @@
   (drop 1 (file-seq (File. (str inbox-dir "/")))))
 
 (defn get-inbox []
-  "Sequence containing timeline structs"
-  (into {} (map #(read-form (.getPath %)) (inbox-files))))
+  "Returns map from timeline id to timeline struct."
+  (into {}
+    (for [f (inbox-files)]
+      (let [update (read-form (.getPath f))]
+        [(:id update) update]))))
 
 (defn get-inbox-file [num]
   "Returns the corresponding tweet struct"
@@ -44,6 +47,12 @@
 (defn inbox-is-empty? []
   "Check $HOME/Twitter/inbox for files."
   (empty? (inbox-files)))
+
+(defn next-inbox-num
+  "Returns the highest number in inbox plus one."
+  []
+  (let [filenums (map #(Integer/parseInt (.getName %)) (inbox-files))]
+    (inc (or (first (sort-by identity > filenums)) 0))))
 
 (def new-inbox-num
   (let [inbox-filenames (inbox-files)
