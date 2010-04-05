@@ -32,7 +32,7 @@
 
 (defn full-view [tweet]
   "Write a full view of the specified update to stdout"
-  (printlnf "(Update inbox: %s)\n", (:number tweet))
+  (printlnf "(Update inbox:%s)\n", (:number tweet))
   (println (:text tweet))
   (printlnf "\n[%s, %s, via %s]",
           (:user tweet),
