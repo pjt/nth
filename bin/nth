@@ -66,5 +66,5 @@ then
 else
    CP=$NTH_HOME/lib/*:$NTH_HOME/classes:$NTH_HOME/src
    # '/*'-glob for classpath requires Java 1.6
-   exec java -cp $CP gropius.sramsay.nth `basename $0` "$@"
+   exec java -Dfile.encoding=UTF8 -cp $CP gropius.sramsay.nth `basename $0` "$@"
 fi

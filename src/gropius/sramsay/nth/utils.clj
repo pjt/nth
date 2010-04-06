@@ -45,6 +45,20 @@
   [n coll]
   (map vector (iterate inc n) coll))
 
+(defn printlnf
+  "Short for (println (format ...)). Printf often requires flushing; this doesn't."
+  [& args]
+  (println (apply format args)))
+
+(defn assert-length 
+  "Makes sure tweet is 140 chars or less, else prints message and exits."
+  [tweet]
+  (let [length (.length tweet)]
+    (when (> length 140)
+      (printlnf "\nSorry, you lost me at:\n\n%s\n" (apply str (take 140 tweet)))
+      (printlnf "\nYou need to get rid of %d characters.\n" (- length 140))
+      (System/exit 1))))
+
 (defn read-form [filename]
   "Read a Clojure form from a file."
   (try
@@ -56,11 +70,6 @@
   "Write a Clojure form to a file."
   (binding [*out* (FileWriter. filename)]
     (prn form)))
-
-(defn printlnf
-  "Short for (println (format ...)). Printf often requires flushing; this doesn't."
-  [& args]
-  (println (apply format args)))
 
 (defn digest-view [update]
   "Write updates to screen (format as: num time nick tweet)"
