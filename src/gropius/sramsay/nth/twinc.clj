@@ -27,7 +27,7 @@
 
 (ns gropius.sramsay.nth.twinc
   (:import 
-     (twitter4j Status Twitter)
+     (twitter4j Paging Status Twitter)
      (java.io File)
      (java.io FileWriter)
      (java.text SimpleDateFormat))
@@ -51,8 +51,10 @@
 
 (defn get-timeline []
   "Retrieve last 20 updates"
-  (let [old-to-new  (reverse (.getFriendsTimeline (get-twitter-object)))
-        indexed     (indexed-from (next-inbox-num) old-to-new)
+  (let [recent      (most-recent-in-inbox)
+        old-to-new  (reverse (.getFriendsTimeline (get-twitter-object) 
+                                (Paging. (or (:id recent) 1))))
+        indexed     (indexed-from (or (:number recent) 1) old-to-new)
         timeline    (map (partial apply timeline-struct) indexed)]
     (into {} (for [update timeline] [(:id update) update]))))
 

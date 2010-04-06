@@ -48,11 +48,12 @@
   "Check $HOME/Twitter/inbox for files."
   (empty? (inbox-files)))
 
-(defn next-inbox-num
-  "Returns the highest number in inbox plus one."
+(defn most-recent-in-inbox
+  "Returns the highest numbered tweet struct (or nil if none)."
   []
   (let [filenums (map #(Integer/parseInt (.getName %)) (inbox-files))]
-    (inc (or (first (sort-by identity > filenums)) 0))))
+    (when-let [recent (first (sort-by identity > filenums))]
+      (get-inbox-file recent))))
 
 (def new-inbox-num
   (let [inbox-filenames (inbox-files)
