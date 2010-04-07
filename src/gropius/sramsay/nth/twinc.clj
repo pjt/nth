@@ -53,8 +53,8 @@
   "Retrieve last 20 updates"
   (let [recent      (most-recent-in-inbox)
         old-to-new  (reverse (.getFriendsTimeline (get-twitter-object) 
-                                (Paging. (or (:id recent) 1))))
-        indexed     (indexed-from (or (:number recent) 1) old-to-new)
+                                (Paging. (get recent :id 1))))
+        indexed     (indexed-from (inc (get recent :number 0)) old-to-new)
         timeline    (map (partial apply timeline-struct) indexed)]
     (into {} (for [update timeline] [(:id update) update]))))
 
