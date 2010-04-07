@@ -46,25 +46,15 @@ function resolve() {
    echo $PRG
 }
 export NTH_HOME=`resolve $0`/../..
-NTH_SRC="${NTH_HOME}/src"
+CP=$NTH_HOME/lib/*:$NTH_HOME/classes:$NTH_HOME/src
 
 NG=`ps | grep -e "[N]GServer"`
 if [ -n "$NG" ];
 then
-	case `basename $0` in
-		"twinc")
-		exec ng clojure.main "${NTH_SRC}/gropius/sramsay/nth/twinc.clj" | sort;;
-		"tweet")
-		shift
-		exec ng clojure.main "${NTH_SRC}/gropius/sramsay/nth/tweet.clj" "$@";;
-		"tscan")
-		exec ng clojure.main "${NTH_SRC}/gropius/sramsay/nth/tscan.clj" | sort;;
-		"tshow")
-		shift
-		exec ng clojure.main "${NTH_SRC}/gropius/sramsay/nth/tshow.clj" "$@";;
-	esac
+   exec ng gropius.sramsay.nth `basename $0` "$@"
+elif [ `basename $0` = "startng-nth" ]; 
+then
+   exec java -Dfile.encoding=UTF8 -cp $CP com.martiansoftware.nailgun.NGServer &
 else
-   CP=$NTH_HOME/lib/*:$NTH_HOME/classes:$NTH_HOME/src
-   # '/*'-glob for classpath requires Java 1.6
    exec java -Dfile.encoding=UTF8 -cp $CP gropius.sramsay.nth `basename $0` "$@"
 fi
