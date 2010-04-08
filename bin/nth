@@ -45,6 +45,7 @@ function resolve() {
    done
    echo $PRG
 }
+
 export NTH_HOME=`resolve $0`/../..
 CP=$NTH_HOME/lib/*:$NTH_HOME/classes:$NTH_HOME/src
 
@@ -52,9 +53,9 @@ NG=`ps | grep -e "[N]GServer"`
 if [ -n "$NG" ];
 then
    exec ng gropius.sramsay.nth `basename $0` "$@"
-elif [ `basename $0` = "startng-nth" ]; 
+elif [ `basename $0` = "ngstart-nth" ]; 
 then
-   exec java -Dfile.encoding=UTF8 -cp $CP com.martiansoftware.nailgun.NGServer &
+   exec java -server -Dfile.encoding=UTF8 -cp $CP com.martiansoftware.nailgun.NGServer &
 else
    exec java -Dfile.encoding=UTF8 -cp $CP gropius.sramsay.nth `basename $0` "$@"
 fi
